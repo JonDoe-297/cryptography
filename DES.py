@@ -223,8 +223,6 @@ if __name__ == "__main__":
         # ciphertext = hex_to_unicode(ciphertext)
         print(ciphertext)
     elif way == 'CBC':
-        # plaintext = input("请输入明文：")
-        # key = input("请输入密钥：")
         # plaintext = 'asdfasdf'
         # key = '123456'
         rage = ["0011000100110011001100110011011000110110001110000011010100110101"]

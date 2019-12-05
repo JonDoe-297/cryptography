@@ -1,7 +1,7 @@
 import random
 import math
 from sys import exit
-def fastExpMod(b, e, m): 
+def fast_Exp_Mod(b, e, m): 
     result = 1
     e = int(e)
     while e != 0:
@@ -21,11 +21,11 @@ def miller_rabin_test(n):  # p为要检验得数
         p /= 2
     b = random.randint(2, n - 2)  # 随机取b=（0.n）
     # 如果情况1    b得p次方  与1  同余  mod n
-    if fastExpMod(b, int(p), n) == 1:
+    if fast_Exp_Mod(b, int(p), n) == 1:
         return True  # 通过测试,可能为素数
     # 情况2  b得（2^r  *p）次方  与-1 (n-1) 同余  mod n
     for i in range(0,7):  # 检验六次
-        if fastExpMod(b, (2 ** i) * p, n) == n - 1:
+        if fast_Exp_Mod(b, (2 ** i) * p, n) == n - 1:
             return True  # 如果该数可能为素数，
     return False  # 不可能是素数
 
@@ -65,26 +65,23 @@ def create_keys(keylength):
     d = match_d(e, fn)
     return (n, e, d)
 
-def encrypt_file(mess):
+def encrypt(mess):
     n, e, d = create_keys(1024)
     print("n:",n," ,d:",d)
     s = ''
-    print(mess)
     for ch in mess:
-        c = str(fastExpMod(ord(ch), e, n))
+        c = str(fast_Exp_Mod(ord(ch), e, n))
         s += c
     print(s)
-    print("Encrypt Done!")
 
-def decrypt_file(mess):
+def decrypt(mess):
     n, d= map(int, input("输入您的私钥（n,d）:").split())
     s = ''
 
     for ch in mess:
-        c = str(fastExpMod(ord(ch), d, n))
+        c = str(fast_Exp_Mod(ord(ch), d, n))
         s += c
     print(s)
-    print("Decrypt Done!")
 
 if __name__ =='__main__':
     way = input("1.加密\n2.解密\n")
@@ -93,7 +90,7 @@ if __name__ =='__main__':
         way = input("1.加密\n2.解密\n")
     if way == '1':
         plaintext = input("请输入明文：")
-        encrypt_file(plaintext)
+        encrypt(plaintext)
     elif way == '2':
         ciphertext = input("请输入密文：")
-        decrypt_file(ciphertext)
+        decrypt(ciphertext)

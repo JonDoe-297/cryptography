@@ -1,4 +1,4 @@
-#0xffffffff is used to make sure numbers dont go over 32
+#0xffffffff 为了确保数字不超过32
 
 def chunks(messageLength, chunkSize):
         chunkValues = []
@@ -11,7 +11,7 @@ def leftRotate(chunk, rotateLength):
     return ((chunk << rotateLength) | (chunk >> (32 - rotateLength))) &  0xffffffff 
 
 def sha1Function(message):
-    #initial hash values
+    #初始化hash值
     h0 = 0x67452301
     h1 = 0xEFCDAB89
     h2 = 0x98BADCFE
@@ -21,13 +21,14 @@ def sha1Function(message):
     
     messageLength = ""
 
-    #preprocessing
+    #附加填充位
     for char in range(len(message)):
         messageLength += '{0:08b}'.format(ord(message[char]))
 
     temp = messageLength
     messageLength += '1'
 
+    #附加长度
     while(len(messageLength) % 512 != 448):
         messageLength += '0'
     messageLength += '{0:064b}'.format(len(temp))
@@ -42,14 +43,12 @@ def sha1Function(message):
         for i in range(16, 80):
             w[i] = leftRotate((w[i-3] ^ w[i-8] ^ w[i-14] ^ w[i-16]), 1)  
         
-        #Initialize hash value for this chunk:
         a = h0
         b = h1
         c = h2
         d = h3
         e = h4
 
-        #main loop:
         for i in range(0, 80):
             if 0 <= i <= 19:
                 f = (b & c) | ((~b) & d)
@@ -78,7 +77,7 @@ def sha1Function(message):
     return '%08x%08x%08x%08x%08x' % (h0, h1, h2, h3, h4)
 
 
-plainText = input("Enter your message:")
+plainText = input("请输入消息：")
 # plainText = 'hello'
 sha1Hash = sha1Function(plainText)
 print(sha1Hash)

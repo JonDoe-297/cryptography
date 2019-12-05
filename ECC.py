@@ -1,92 +1,66 @@
 class ECC():
 
-    def __init__(self, a, b, p):
+    def __init__(self, a, b, p, k):
         self.a = a
         self.b = b
         self.p = p
+        self.k = k
         self.r_x = None
         self.r_y = None
 
-    def setPoint(self, z):
-        self.g_x = z[0]
-        self.g_y = z[1]
-
-    # def intModInverse(self, e):
-    #     return pow(e, self.p-2, self.p)
-
-    def PointDecompress(self, P):
-        x = P[0]
-        # if (self.p % 4 != 3):
-        #     print("Square root not implemented for prime 1 mod 4")
-        z = x**3 + self.a*x + self.b
-        z %= self.p
-        y = pow(z, (self.p+1)//4, self.p)
-        i = P[1]
-        y_i = y % 2
-        if (i==y_i):
-            return (x,y)
-        return (x, self.p-y)
-
-    def raiseByExponent(self, exp):
-        if exp is 1:
-          self.r_x = self.g_x
-          self.r_y = self.g_y
-          return
-        gArray = []
-        gArray.append(self.g_x)
-        gArray.append(self.g_y)
-        self.add(self.g_x, self.g_y, self.g_x, self.g_y)
-        gArray.append(self.r_x)
-        gArray.append(self.r_y)
-
-        for i in range(2, exp.bit_length()):
-            self.add(self.r_x, self.r_y, self.r_x, self.r_y)
-            gArray.append(self.r_x)
-            gArray.append(self.r_y)
-
-        print(gArray)
-        lowestBit = 0
-        for i in range(exp.bit_length()):
-            if ((exp & (1 << i)) != 0):
-              lowestBit = i
-              break
-        self.r_x = gArray[2*lowestBit]
-        self.r_y = gArray[(2*lowestBit)+1]
-        lowestBit += 1
-        for i in range(lowestBit, exp.bit_length()):
-            if ((exp & (1 << i)) != 0):
-                self.add(self.r_x, self.r_y, gArray[2*i], gArray[(2*i)+1])
+    def setGPoint(self, g):
+        self.g_x = g[0]
+        self.g_y = g[1]
+    
+    def setPAPoint(self, pa):
+        self.pa_x = pa[0]
+        self.pa_y = pa[1]
+    
+    def setPMPoint(self, pm):
+        self.pm_x = pm[0]
+        self.pm_y = pm[1]
 
     def add(self, x_0, y_0, x_1, y_1):
         if x_0 is None:
           self.r_x = x_1
           self.r_y = y_1
-          return
+          return self.r_x, self.r_y
         if x_1 is None:
           self.r_x = x_0
           self.r_y = y_0
-          return
+          return self.r_x, self.r_y
         if (x_0 == x_1) and ((y_1 + y_0) == self.p):
           self.r_x = None
           self.r_y = None
-          return
+          return self.r_x, self.r_y
         if x_0 is not x_1:
           lambduh = (((y_1 - y_0) / (x_1 - x_0)) % self.p)
-        #   lambduh *= self.intModInverse(x_1 - x_0)
           lambduh %= self.p
           self.r_x = int((lambduh*lambduh - x_0 - x_1) % self.p)
           self.r_y = int((lambduh*(x_0 - self.r_x) - y_0) % self.p)
-          return
+          return self.r_x, self.r_y
         lambduh = ((3*x_1*x_1 + self.a) / (y_0*2)) % self.p
-        # lambduh *= self.intModInverse(y_0*2) % self.p
+        # return int((lambduh*lambduh - x_0 - x_1) % self.p), int(((x_0 - self.r_x)*lambduh - y_0) % self.p)
         self.r_x = int((lambduh*lambduh - x_0 - x_1) % self.p)
         self.r_y = int(((x_0 - self.r_x)*lambduh - y_0) % self.p)
+        return self.r_x, self.r_y
+    
+    def decrypt(self):
+        kg_x, kg_y, kpa_x, kpa_y, pm_x, pm_y = self.g_x, self.g_y, self.pa_x, self.pa_y, 0, 0
+        # kg, kpa, pm = (0, 0), (0, 0), (0, 0)
+        for i in range(self.k):
+            kg_x, kg_y = self.add(kg_x, kg_y, self.g_x, self.g_y)
+        
+        for j in range(self.k):
+            kpa_x, kpa_y = self.add(kpa_x, kpa_y, self.pa_x, self.pa_y)
+        pm_x, pm_y = self.add(self.pm_x, self.pm_y, kpa_x, kpa_y)
+        return {(kg_x, kg_y), (pm_x, pm_y)}
 
 
 if __name__ == '__main__':
-    curve = ECC(4, 20, 29)
-    # P = curve.PointDecompress((8,10))
-    # print(P)
-    curve.setPoint((8,10))
-    curve.raiseByExponent(9)
-    print(curve.r_x, curve.r_y)
+    curve = ECC(-1, 188, 751, 386)
+    curve.setGPoint((0,376))
+    curve.setPAPoint((201,5))
+    curve.setPMPoint((562,201))
+    ciphertext = curve.decrypt()
+    print(ciphertext)
